@@ -10,7 +10,7 @@ namespace DeliveryApi.Tests.Infrastructure;
 
 public static class ApiTestClient
 {
-    public const string DefaultPassword = "Sup3r-Secret!";
+    public const string DefaultPassword = "password-used-in-tests";
 
     public static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
     {

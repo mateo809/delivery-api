@@ -4,7 +4,7 @@ services:
     environment:
       POSTGRES_DB: delivery
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in the .env file}
     ports:
       - "5432:5432"
     volumes:
@@ -22,9 +22,9 @@ services:
         condition: service_healthy
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      ConnectionStrings__Database: Host=database;Port=5432;Database=delivery;Username=postgres;Password=postgres
+      ConnectionStrings__Database: Host=database;Port=5432;Database=delivery;Username=postgres;Password=${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in the .env file}
       Database__ApplyMigrationsOnStartup: "true"
-      Jwt__SigningKey: ${JWT_SIGNING_KEY:-local-docker-signing-key-change-me-please}
+      Jwt__SigningKey: ${JWT_SIGNING_KEY:?Set JWT_SIGNING_KEY in the .env file}
     ports:
       - "8080:8080"
 

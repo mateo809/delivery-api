@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using DeliveryApi.Data;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -8,10 +9,13 @@ namespace DeliveryApi.Tests.Infrastructure;
 
 public sealed class DeliveryApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
-    private const string DefaultConnectionString = "Host=localhost;Port=5432;Username=postgres;Password=postgres";
+    private const string ConnectionStringVariable = "TEST_DATABASE_CONNECTION_STRING";
+
+    private readonly string _signingKey = Convert.ToBase64String(RandomNumberGenerator.GetBytes(48));
 
     private readonly string _connectionString = new NpgsqlConnectionStringBuilder(
-        Environment.GetEnvironmentVariable("TEST_DATABASE_CONNECTION_STRING") ?? DefaultConnectionString)
+        Environment.GetEnvironmentVariable(ConnectionStringVariable)
+        ?? throw new InvalidOperationException($"Set {ConnectionStringVariable} to run the integration tests."))
     {
         Database = $"delivery_tests_{Guid.NewGuid():N}"
     }.ConnectionString;
@@ -21,7 +25,7 @@ public sealed class DeliveryApiFactory : WebApplicationFactory<Program>, IAsyncL
         builder.UseEnvironment("Testing");
         builder.UseSetting("ConnectionStrings:Database", _connectionString);
         builder.UseSetting("Database:ApplyMigrationsOnStartup", "true");
-        builder.UseSetting("Jwt:SigningKey", "integration-tests-signing-key-that-is-long-enough");
+        builder.UseSetting("Jwt:SigningKey", _signingKey);
     }
 
     public Task InitializeAsync() => Task.CompletedTask;

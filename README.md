@@ -94,11 +94,16 @@ Les entités du domaine protègent leurs invariants : leurs propriétés ne sont
 
 ## Lancer le projet
 
+Aucun secret n'est versionné : les mots de passe et la clé de signature des jetons sont fournis par des variables d'environnement.
+
 ### Avec Docker
 
 ```bash
+cp .env.example .env
 docker compose up --build
 ```
+
+Renseigner dans `.env` un mot de passe PostgreSQL et une clé de signature aléatoire d'au moins 32 caractères.
 
 L'API est disponible sur `http://localhost:8080` et la documentation interactive sur `http://localhost:8080/scalar`.
 
@@ -107,9 +112,14 @@ L'API est disponible sur `http://localhost:8080` et la documentation interactive
 Prérequis : SDK .NET 10 et une instance PostgreSQL accessible sur `localhost:5432`.
 
 ```bash
+cp .env.example .env
 docker compose up -d database
+dotnet user-secrets set "ConnectionStrings:Database" "Host=localhost;Port=5432;Database=delivery;Username=postgres;Password=<mot de passe>" --project src/DeliveryApi
+dotnet user-secrets set "Jwt:SigningKey" "<clé aléatoire d'au moins 32 caractères>" --project src/DeliveryApi
 dotnet run --project src/DeliveryApi
 ```
+
+Les valeurs sont stockées par `dotnet user-secrets` en dehors du dépôt.
 
 La documentation est disponible sur `http://localhost:5168/scalar`. En environnement de développement, les migrations sont appliquées automatiquement au démarrage.
 
@@ -136,14 +146,13 @@ curl -X POST http://localhost:8080/api/orders \
 
 ## Tests
 
-Les tests d'intégration créent une base PostgreSQL dédiée et éphémère à chaque exécution.
+Les tests d'intégration créent une base PostgreSQL dédiée et éphémère à chaque exécution. La clé de signature des jetons est générée aléatoirement à chaque lancement.
 
 ```bash
 docker compose up -d database
+export TEST_DATABASE_CONNECTION_STRING="Host=localhost;Port=5432;Username=postgres;Password=<mot de passe>"
 dotnet test
 ```
-
-La chaîne de connexion utilisée par les tests peut être modifiée avec la variable `TEST_DATABASE_CONNECTION_STRING`.
 
 ## Configuration
 
@@ -151,7 +160,7 @@ La chaîne de connexion utilisée par les tests peut être modifiée avec la var
 | --- | --- |
 | `ConnectionStrings__Database` | Chaîne de connexion PostgreSQL |
 | `Database__ApplyMigrationsOnStartup` | Applique les migrations au démarrage |
-| `Jwt__SigningKey` | Clé de signature des jetons, 32 caractères minimum, obligatoire hors développement |
+| `Jwt__SigningKey` | Clé de signature des jetons, 32 caractères minimum, obligatoire |
 | `Jwt__Issuer` / `Jwt__Audience` | Émetteur et audience des jetons |
 | `Jwt__ExpirationMinutes` | Durée de validité d'un jeton |
 
